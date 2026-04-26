@@ -1,0 +1,39 @@
+name: EDITH APK Build
+
+on:
+  push:
+    branches: [ ana ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Wrapper olustur
+        run: |
+          cd EDITH_FULL
+          mkdir -p gradle/wrapper
+          curl -o gradle/wrapper/gradle-wrapper.jar \
+            https://raw.githubusercontent.com/gradle/gradle/v8.1.0/gradle/wrapper/gradle-wrapper.jar
+          curl -o gradlew \
+            https://raw.githubusercontent.com/gradle/gradle/v8.1.0/gradlew
+          chmod +x gradlew
+          printf 'distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-8.1-bin.zip\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists\n' > gradle/wrapper/gradle-wrapper.properties
+
+      - name: APK derle
+        run: |
+          cd EDITH_FULL
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EDITH-APK
+          path: EDITH_FULL/app/build/outputs/apk/debug/app-debug.apk
